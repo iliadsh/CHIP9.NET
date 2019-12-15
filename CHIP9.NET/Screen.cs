@@ -24,8 +24,14 @@ namespace CHIP9.NET
             KeyDown += Screen_KeyDown;
             KeyUp += Screen_KeyUp;
             Paint += Screen_Paint;
+            FormClosing += Screen_FormClosing;
             cpu = new CPU();
             cpu.Run();
+        }
+
+        private void Screen_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            cpu.execThread.Abort();
         }
 
         private void Screen_Paint(object sender, PaintEventArgs e)
@@ -71,10 +77,10 @@ namespace CHIP9.NET
                 case Keys.L:
                     cpu.memory[0xF000] &= 0b11111011;
                     break;
-                case Keys.LShiftKey:
+                case Keys.Z:
                     cpu.memory[0xF000] &= 0b11111101;
                     break;
-                case Keys.LControlKey:
+                case Keys.X:
                     cpu.memory[0xF000] &= 0b11111110;
                     break;
                 default:
@@ -104,11 +110,11 @@ namespace CHIP9.NET
                 case Keys.L:
                     cpu.memory[0xF000] |= 0b00000100;
                     break;
-                case Keys.LShiftKey:
+                case Keys.Z:
                     cpu.memory[0xF000] |= 0b00000010;
                     break;
-                case Keys.LControlKey:
-                    cpu.memory[0xF000] |= 0b00000010;
+                case Keys.X:
+                    cpu.memory[0xF000] |= 0b00000001;
                     break;
                 default:
                     break;

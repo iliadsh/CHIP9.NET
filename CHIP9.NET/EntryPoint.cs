@@ -6,7 +6,7 @@ using System.Windows.Forms;
 
 namespace CHIP9.NET
 {
-    static class Program
+    static class EntryPoint
     {
         /// <summary>
         /// The main entry point for the application.

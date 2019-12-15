@@ -58,6 +58,7 @@ namespace CHIP9.NET
         public Flags flags = new Flags();
         public delegate void Operate(out ushort moveAmount);
         public Operate[] opcodes = new Operate[0xFF];
+        public Thread execThread;
 
         public void Run()
         {
@@ -67,7 +68,8 @@ namespace CHIP9.NET
             byte[] romBytes = File.ReadAllBytes("rom");
             Array.Copy(bootromBytes, 0, memory, 0, bootromBytes.Length);
             Array.Copy(romBytes, 0, memory, 0x597, romBytes.Length);
-            new Thread(new ThreadStart(FetchExecute));
+            execThread = new Thread(new ThreadStart(FetchExecute));
+            execThread.Start();
         }
 
         public void FetchExecute()
@@ -78,7 +80,9 @@ namespace CHIP9.NET
                 var operation = opcodes[opcode];
                 if (operation == null)
                 {
+                    Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine(string.Format("SYSTEM FATAL ERROR: Unknown Opcode {0}", opcode));
+                    Console.ResetColor();
                     break;
                 }
                 operation(out ushort moveAmount);
@@ -326,100 +330,507 @@ namespace CHIP9.NET
                 moveAmount = 1;
             };
             //kms
-            //MOVE B, B
+            //MOV B, B
             opcodes[0x09] = (out ushort moveAmount) =>
             {
                 registers.B = registers.B;
                 moveAmount = 1;
             };
-            //MOVE B, C
+            //MOV B, C
             opcodes[0x19] = (out ushort moveAmount) =>
             {
                 registers.B = registers.C;
                 moveAmount = 1;
             };
-            //MOVE B, D
+            //MOV B, D
             opcodes[0x29] = (out ushort moveAmount) =>
             {
                 registers.B = registers.D;
                 moveAmount = 1;
             };
-            //MOVE B, E
+            //MOV B, E
             opcodes[0x39] = (out ushort moveAmount) =>
             {
                 registers.B = registers.E;
                 moveAmount = 1;
             };
-            //MOVE B, H
+            //MOV B, H
             opcodes[0x49] = (out ushort moveAmount) =>
             {
                 registers.B = registers.H;
                 moveAmount = 1;
             };
-            //MOVE B, L
+            //MOV B, L
             opcodes[0x59] = (out ushort moveAmount) =>
             {
                 registers.B = registers.L;
                 moveAmount = 1;
             };
-            //MOVE B, (HL)
+            //MOV B, (HL)
             opcodes[0x69] = (out ushort moveAmount) =>
             {
                 registers.B = memory[registers.HL];
                 moveAmount = 1;
             };
-            //MOVE B, A
+            //MOV B, A
             opcodes[0x79] = (out ushort moveAmount) =>
             {
                 registers.B = registers.A;
                 moveAmount = 1;
             };
-            //MOVE C, B
+            //MOV C, B
             opcodes[0x89] = (out ushort moveAmount) =>
             {
                 registers.C = registers.B;
                 moveAmount = 1;
             };
-            //MOVE C, C
+            //MOV C, C
             opcodes[0x99] = (out ushort moveAmount) =>
             {
                 registers.C = registers.C;
                 moveAmount = 1;
             };
-            //MOVE C, D
+            //MOV C, D
             opcodes[0xA9] = (out ushort moveAmount) =>
             {
                 registers.C = registers.D;
                 moveAmount = 1;
             };
-            //MOVE C, E
+            //MOV C, E
             opcodes[0xB9] = (out ushort moveAmount) =>
             {
                 registers.C = registers.E;
                 moveAmount = 1;
             };
-            //MOVE C, H
+            //MOV C, H
             opcodes[0xC9] = (out ushort moveAmount) =>
             {
                 registers.C = registers.H;
                 moveAmount = 1;
             };
-            //MOVE C, L
+            //MOV C, L
             opcodes[0xD9] = (out ushort moveAmount) =>
             {
                 registers.C = registers.L;
                 moveAmount = 1;
             };
-            //MOVE C, (HL)
+            //MOV C, (HL)
             opcodes[0xE9] = (out ushort moveAmount) =>
             {
                 registers.C = memory[registers.HL];
                 moveAmount = 1;
             };
-            //MOVE C, A
+            //MOV C, A
             opcodes[0xF9] = (out ushort moveAmount) =>
             {
                 registers.C = registers.A;
+                moveAmount = 1;
+            };
+            //MOV D, B
+            opcodes[0x0A] = (out ushort moveAmount) =>
+            {
+                registers.D = registers.B;
+                moveAmount = 1;
+            };
+            //MOV D, C
+            opcodes[0x1A] = (out ushort moveAmount) =>
+            {
+                registers.D = registers.C;
+                moveAmount = 1;
+            };
+            //MOV D, D
+            opcodes[0x2A] = (out ushort moveAmount) =>
+            {
+                registers.D = registers.D;
+                moveAmount = 1;
+            };
+            //MOV D, E
+            opcodes[0x3A] = (out ushort moveAmount) =>
+            {
+                registers.D = registers.E;
+                moveAmount = 1;
+            };
+            //MOV D, H
+            opcodes[0x4A] = (out ushort moveAmount) =>
+            {
+                registers.D = registers.H;
+                moveAmount = 1;
+            };
+            //MOV D, L
+            opcodes[0x5A] = (out ushort moveAmount) =>
+            {
+                registers.D = registers.L;
+                moveAmount = 1;
+            };
+            //MOV D, (HL)
+            opcodes[0x6A] = (out ushort moveAmount) =>
+            {
+                registers.D = memory[registers.HL];
+                moveAmount = 1;
+            };
+            //MOV D, A
+            opcodes[0x7A] = (out ushort moveAmount) =>
+            {
+                registers.D = registers.A;
+                moveAmount = 1;
+            };
+            //MOV E, B
+            opcodes[0x8A] = (out ushort moveAmount) =>
+            {
+                registers.E = registers.B;
+                moveAmount = 1;
+            };
+            //MOV E, C
+            opcodes[0x9A] = (out ushort moveAmount) =>
+            {
+                registers.E = registers.C;
+                moveAmount = 1;
+            };
+            //MOV E, D
+            opcodes[0xAA] = (out ushort moveAmount) =>
+            {
+                registers.E = registers.D;
+                moveAmount = 1;
+            };
+            //MOV E, E
+            opcodes[0xBA] = (out ushort moveAmount) =>
+            {
+                registers.E = registers.E;
+                moveAmount = 1;
+            };
+            //MOV E, H
+            opcodes[0xCA] = (out ushort moveAmount) =>
+            {
+                registers.E = registers.H;
+                moveAmount = 1;
+            };
+            //MOV E, L
+            opcodes[0xDA] = (out ushort moveAmount) =>
+            {
+                registers.E = registers.L;
+                moveAmount = 1;
+            };
+            //MOV E, (HL)
+            opcodes[0xEA] = (out ushort moveAmount) =>
+            {
+                registers.E = memory[registers.HL];
+                moveAmount = 1;
+            };
+            //MOV E, A
+            opcodes[0xFA] = (out ushort moveAmount) =>
+            {
+                registers.E = registers.A;
+                moveAmount = 1;
+            };
+            //MOV H, B
+            opcodes[0x0B] = (out ushort moveAmount) =>
+            {
+                registers.H = registers.B;
+                moveAmount = 1;
+            };
+            //MOV H, C
+            opcodes[0x1B] = (out ushort moveAmount) =>
+            {
+                registers.H = registers.C;
+                moveAmount = 1;
+            };
+            //MOV H, D
+            opcodes[0x2B] = (out ushort moveAmount) =>
+            {
+                registers.H = registers.D;
+                moveAmount = 1;
+            };
+            //MOV H, E
+            opcodes[0x3B] = (out ushort moveAmount) =>
+            {
+                registers.H = registers.E;
+                moveAmount = 1;
+            };
+            //MOV H, H
+            opcodes[0x4B] = (out ushort moveAmount) =>
+            {
+                registers.H = registers.H;
+                moveAmount = 1;
+            };
+            //MOV H, L
+            opcodes[0x5B] = (out ushort moveAmount) =>
+            {
+                registers.H = registers.L;
+                moveAmount = 1;
+            };
+            //MOV H, (HL)
+            opcodes[0x6B] = (out ushort moveAmount) =>
+            {
+                registers.H = memory[registers.HL];
+                moveAmount = 1;
+            };
+            //MOV H, A
+            opcodes[0x7B] = (out ushort moveAmount) =>
+            {
+                registers.H = registers.A;
+                moveAmount = 1;
+            };
+            //MOV L, B
+            opcodes[0x8B] = (out ushort moveAmount) =>
+            {
+                registers.L = registers.B;
+                moveAmount = 1;
+            };
+            //MOV L, C
+            opcodes[0x9B] = (out ushort moveAmount) =>
+            {
+                registers.L = registers.C;
+                moveAmount = 1;
+            };
+            //MOV L, D
+            opcodes[0xAB] = (out ushort moveAmount) =>
+            {
+                registers.L = registers.D;
+                moveAmount = 1;
+            };
+            //MOV L, E
+            opcodes[0xBB] = (out ushort moveAmount) =>
+            {
+                registers.L = registers.E;
+                moveAmount = 1;
+            };
+            //MOV L, H
+            opcodes[0xCB] = (out ushort moveAmount) =>
+            {
+                registers.L = registers.H;
+                moveAmount = 1;
+            };
+            //MOV L, L
+            opcodes[0xDB] = (out ushort moveAmount) =>
+            {
+                registers.L = registers.L;
+                moveAmount = 1;
+            };
+            //MOV L, (HL)
+            opcodes[0xEB] = (out ushort moveAmount) =>
+            {
+                registers.L = memory[registers.HL];
+                moveAmount = 1;
+            };
+            //MOV L, A
+            opcodes[0xFB] = (out ushort moveAmount) =>
+            {
+                registers.L = registers.A;
+                moveAmount = 1;
+            };
+            //MOV (HL), B
+            opcodes[0x0C] = (out ushort moveAmount) =>
+            {
+                memory[registers.HL] = registers.B;
+                moveAmount = 1;
+            };
+            //MOV (HL), C
+            opcodes[0x1C] = (out ushort moveAmount) =>
+            {
+                memory[registers.HL] = registers.C;
+                moveAmount = 1;
+            };
+            //MOV (HL), D
+            opcodes[0x2C] = (out ushort moveAmount) =>
+            {
+                memory[registers.HL] = registers.D;
+                moveAmount = 1;
+            };
+            //MOV (HL), E
+            opcodes[0x3C] = (out ushort moveAmount) =>
+            {
+                memory[registers.HL] = registers.E;
+                moveAmount = 1;
+            };
+            //MOV (HL), H
+            opcodes[0x4C] = (out ushort moveAmount) =>
+            {
+                memory[registers.HL] = registers.H;
+                moveAmount = 1;
+            };
+            //MOV (HL), L
+            opcodes[0x5C] = (out ushort moveAmount) =>
+            {
+                memory[registers.HL] = registers.L;
+                moveAmount = 1;
+            };
+            //HCF
+            opcodes[0x6C] = (out ushort moveAmount) =>
+            {
+                Console.ForegroundColor = ConsoleColor.DarkRed;
+                Console.WriteLine("SYSTEM: HALT & CATCH FIRE CALLED");
+                Console.ResetColor();
+                moveAmount = 1;
+            };
+            //MOV (HL), A
+            opcodes[0x7C] = (out ushort moveAmount) =>
+            {
+                memory[registers.HL] = registers.A;
+                moveAmount = 1;
+            };
+            //MOV A, B
+            opcodes[0x8C] = (out ushort moveAmount) =>
+            {
+                registers.A = registers.B;
+                moveAmount = 1;
+            };
+            //MOV A, C
+            opcodes[0x9C] = (out ushort moveAmount) =>
+            {
+                registers.A = registers.C;
+                moveAmount = 1;
+            };
+            //MOV A, D
+            opcodes[0xAC] = (out ushort moveAmount) =>
+            {
+                registers.A = registers.D;
+                moveAmount = 1;
+            };
+            //MOV A, E
+            opcodes[0xBC] = (out ushort moveAmount) =>
+            {
+                registers.A = registers.E;
+                moveAmount = 1;
+            };
+            //MOV A, H
+            opcodes[0xCC] = (out ushort moveAmount) =>
+            {
+                registers.A = registers.H;
+                moveAmount = 1;
+            };
+            //MOV A, L
+            opcodes[0xDC] = (out ushort moveAmount) =>
+            {
+                registers.A = registers.L;
+                moveAmount = 1;
+            };
+            //MOV A, (HL)
+            opcodes[0xEC] = (out ushort moveAmount) =>
+            {
+                registers.A = memory[registers.HL];
+                moveAmount = 1;
+            };
+            //MOV A, A
+            opcodes[0xFC] = (out ushort moveAmount) =>
+            {
+                registers.A = registers.A;
+                moveAmount = 1;
+            };
+            //MOV HL, BC
+            opcodes[0xED] = (out ushort moveAmount) =>
+            {
+                registers.HL = registers.BC;
+                moveAmount = 1;
+            };
+            //MOV HL, DE
+            opcodes[0xFD] = (out ushort moveAmount) =>
+            {
+                registers.HL = registers.DE;
+                moveAmount = 1;
+            };
+            //CLRFLAG
+            opcodes[0x08] = (out ushort moveAmount) =>
+            {
+                flags.Z = false;
+                flags.N = false;
+                flags.H = false;
+                flags.C = false;
+                moveAmount = 1;
+            };
+            //SETFLAG Z, 1
+            opcodes[0x18] = (out ushort moveAmount) =>
+            {
+                flags.Z = true;
+                moveAmount = 1;
+            };
+            //SETFLAG Z, 0
+            opcodes[0x28] = (out ushort moveAmount) =>
+            {
+                flags.Z = false;
+                moveAmount = 1;
+            };
+            //SETFLAG N, 1
+            opcodes[0x38] = (out ushort moveAmount) =>
+            {
+                flags.N = true;
+                moveAmount = 1;
+            };
+            //SETFLAG N, 0
+            opcodes[0x48] = (out ushort moveAmount) =>
+            {
+                flags.N = false;
+                moveAmount = 1;
+            };
+            //SETFLAG H, 1
+            opcodes[0x58] = (out ushort moveAmount) =>
+            {
+                flags.H = true;
+                moveAmount = 1;
+            };
+            //SETFLAG H, 0
+            opcodes[0x68] = (out ushort moveAmount) =>
+            {
+                flags.H = false;
+                moveAmount = 1;
+            };
+            //SETFLAG C, 1
+            opcodes[0x78] = (out ushort moveAmount) =>
+            {
+                flags.C = true;
+                moveAmount = 1;
+            };
+            //SETFLAG C, 0
+            opcodes[0x88] = (out ushort moveAmount) =>
+            {
+                flags.C = false;
+                moveAmount = 1;
+            };
+            //ADD B
+            opcodes[0x04] = (out ushort moveAmount) =>
+            {
+                registers.B += registers.A;
+                moveAmount = 1;
+            };
+            //ADD C
+            opcodes[0x14] = (out ushort moveAmount) =>
+            {
+                registers.C += registers.A;
+                moveAmount = 1;
+            };
+            //ADD D
+            opcodes[0x24] = (out ushort moveAmount) =>
+            {
+                registers.D += registers.A;
+                moveAmount = 1;
+            };
+            //ADD E
+            opcodes[0x34] = (out ushort moveAmount) =>
+            {
+                registers.E += registers.A;
+                moveAmount = 1;
+            };
+            //ADD H
+            opcodes[0x44] = (out ushort moveAmount) =>
+            {
+                registers.H += registers.A;
+                moveAmount = 1;
+            };
+            //ADD L
+            opcodes[0x54] = (out ushort moveAmount) =>
+            {
+                registers.L += registers.A;
+                moveAmount = 1;
+            };
+            //ADD (HL)
+            opcodes[0x64] = (out ushort moveAmount) =>
+            {
+                memory[registers.HL] += registers.A;
+                moveAmount = 1;
+            };
+            //ADD A
+            opcodes[0x74] = (out ushort moveAmount) =>
+            {
+                registers.A += registers.A;
                 moveAmount = 1;
             };
         }
