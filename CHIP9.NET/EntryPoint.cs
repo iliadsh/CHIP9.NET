@@ -8,15 +8,10 @@ namespace CHIP9.NET
 {
     static class EntryPoint
     {
-        /// <summary>
-        /// The main entry point for the application.
-        /// </summary>
         [STAThread]
         static void Main()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Screen());
+            new Screen().Run();
         }
     }
 }
