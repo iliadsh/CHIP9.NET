@@ -1637,6 +1637,8 @@ namespace CHIP9.NET
             {
                 flags.Z = registers.B == registers.A;
                 flags.N = registers.B < registers.A;
+                flags.H = (registers.B & 0xF) < (registers.A & 0xF);
+                flags.C = registers.B < registers.A;
                 moveAmount = 1;
             };
             //CMP C
@@ -1644,6 +1646,8 @@ namespace CHIP9.NET
             {
                 flags.Z = registers.C == registers.A;
                 flags.N = registers.C < registers.A;
+                flags.H = (registers.C & 0xF) < (registers.A & 0xF);
+                flags.C = registers.C < registers.A;
                 moveAmount = 1;
             };
             //CMP D
@@ -1651,6 +1655,8 @@ namespace CHIP9.NET
             {
                 flags.Z = registers.D == registers.A;
                 flags.N = registers.D < registers.A;
+                flags.H = (registers.D & 0xF) < (registers.A & 0xF);
+                flags.C = registers.D < registers.A;
                 moveAmount = 1;
             };
             //CMP E
@@ -1658,6 +1664,8 @@ namespace CHIP9.NET
             {
                 flags.Z = registers.E == registers.A;
                 flags.N = registers.E < registers.A;
+                flags.H = (registers.E & 0xF) < (registers.A & 0xF);
+                flags.C = registers.E < registers.A;
                 moveAmount = 1;
             };
             //CMP H
@@ -1665,6 +1673,8 @@ namespace CHIP9.NET
             {
                 flags.Z = registers.H == registers.A;
                 flags.N = registers.H < registers.A;
+                flags.H = (registers.E & 0xF) < (registers.A & 0xF);
+                flags.C = registers.E < registers.A;
                 moveAmount = 1;
             };
             //CMP L
@@ -1672,6 +1682,8 @@ namespace CHIP9.NET
             {
                 flags.Z = registers.L == registers.A;
                 flags.N = registers.L < registers.A;
+                flags.H = (registers.L & 0xF) < (registers.A & 0xF);
+                flags.C = registers.L < registers.A;
                 moveAmount = 1;
             };
             //CMP (HL)
@@ -1679,6 +1691,8 @@ namespace CHIP9.NET
             {
                 flags.Z = memory[registers.HL] == registers.A;
                 flags.N = memory[registers.HL] < registers.A;
+                flags.H = (memory[registers.HL] & 0xF) < (registers.A & 0xF);
+                flags.C = memory[registers.HL] < registers.A;
                 moveAmount = 1;
             };
             //CMP A
@@ -1686,6 +1700,8 @@ namespace CHIP9.NET
             {
                 flags.Z = registers.A == registers.A;
                 flags.N = registers.A < registers.A;
+                flags.H = (registers.A & 0xF) < (registers.A & 0xF);
+                flags.C = registers.A < registers.A;
                 moveAmount = 1;
             };
             //CMPI A xx
@@ -1694,20 +1710,26 @@ namespace CHIP9.NET
                 byte xx = memory[registers.PC + 1];
                 flags.Z = registers.A == xx;
                 flags.N = registers.A < xx;
+                flags.H = (registers.A & 0xF) < (xx & 0xF);
+                flags.C = registers.A < xx;
                 moveAmount = 2;
             };
             //CMPS B
             opcodes[0x0D] = (out ushort moveAmount) =>
             {
                 flags.Z = registers.B == registers.A;
-                flags.N = registers.B < registers.A;
+                flags.N = (sbyte)registers.B < (sbyte)registers.A;
+                flags.H = ((sbyte)registers.B & 0xF) < ((sbyte)registers.A & 0xF);
+                flags.C = (sbyte)registers.B < (sbyte)registers.A;
                 moveAmount = 1;
             };
             //CMPS C
             opcodes[0x1D] = (out ushort moveAmount) =>
             {
                 flags.Z = registers.C == registers.A;
-                flags.N = registers.C < registers.A;
+                flags.N = (sbyte)registers.C < (sbyte)registers.A;
+                flags.H = ((sbyte)registers.C & 0xF) < ((sbyte)registers.A & 0xF);
+                flags.C = (sbyte)registers.C < (sbyte)registers.A;
                 moveAmount = 1;
             };
             //CMPS D
@@ -1715,6 +1737,8 @@ namespace CHIP9.NET
             {
                 flags.Z = registers.D == registers.A;
                 flags.N = (sbyte)registers.D < (sbyte)registers.A;
+                flags.H = ((sbyte)registers.D & 0xF) < ((sbyte)registers.A & 0xF);
+                flags.C = (sbyte)registers.D < (sbyte)registers.A;
                 moveAmount = 1;
             };
             //CMPS E
@@ -1722,6 +1746,8 @@ namespace CHIP9.NET
             {
                 flags.Z = registers.E == registers.A;
                 flags.N = (sbyte)registers.E < (sbyte)registers.A;
+                flags.H = ((sbyte)registers.E & 0xF) < ((sbyte)registers.A & 0xF);
+                flags.C = (sbyte)registers.E < (sbyte)registers.A;
                 moveAmount = 1;
             };
             //CMPS H
@@ -1729,6 +1755,8 @@ namespace CHIP9.NET
             {
                 flags.Z = registers.H == registers.A;
                 flags.N = (sbyte)registers.H < (sbyte)registers.A;
+                flags.H = ((sbyte)registers.H & 0xF) < ((sbyte)registers.A & 0xF);
+                flags.C = (sbyte)registers.H < (sbyte)registers.A;
                 moveAmount = 1;
             };
             //CMPS L
@@ -1736,6 +1764,8 @@ namespace CHIP9.NET
             {
                 flags.Z = registers.L == registers.A;
                 flags.N = (sbyte)registers.L < (sbyte)registers.A;
+                flags.H = ((sbyte)registers.L & 0xF) < ((sbyte)registers.A & 0xF);
+                flags.C = (sbyte)registers.L < (sbyte)registers.A;
                 moveAmount = 1;
             };
             //CMPS (HL)
@@ -1743,6 +1773,8 @@ namespace CHIP9.NET
             {
                 flags.Z = memory[registers.HL] == registers.A;
                 flags.N = (sbyte)memory[registers.HL] < (sbyte)registers.A;
+                flags.H = ((sbyte)memory[registers.HL] & 0xF) < ((sbyte)registers.A & 0xF);
+                flags.C = (sbyte)memory[registers.HL] < (sbyte)registers.A;
                 moveAmount = 1;
             };
             //CMPS A
@@ -1750,6 +1782,8 @@ namespace CHIP9.NET
             {
                 flags.Z = registers.A == registers.A;
                 flags.N = (sbyte)registers.A < (sbyte)registers.A;
+                flags.H = ((sbyte)registers.A & 0xF) < ((sbyte)registers.A & 0xF);
+                flags.C = (sbyte)registers.A < (sbyte)registers.A;
                 moveAmount = 1;
             };
             #endregion
