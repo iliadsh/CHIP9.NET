@@ -50,12 +50,14 @@ namespace CHIP9.NET
             }));
             fpsThread.Start();
             cpu = new CPU();
+            Console.WriteLine("+====================================================+");
             cpu.Run();
+            Console.WriteLine("+====================================================+");
         }
         protected override void OnClosed(EventArgs e)
         {
-            cpu.execThread.Abort();
-            fpsThread.Abort();
+            cpu.Kill();
+            fpsThread?.Abort();
         }
         protected override void OnUpdateFrame(FrameEventArgs e)
         {

@@ -10,7 +10,7 @@ using System.IO;
 namespace CHIP9.NET
 {
     [StructLayout(LayoutKind.Explicit)]
-    public struct Registers
+    internal struct Registers
     {
         [FieldOffset(0)]
         public byte A;
@@ -42,7 +42,7 @@ namespace CHIP9.NET
         public ushort PC;
     }
 
-    public struct Flags
+    internal struct Flags
     {
         public bool Z;
         public bool N;
@@ -52,41 +52,96 @@ namespace CHIP9.NET
 
     public class CPU
     {
-        public byte[] memory = new byte[ushort.MaxValue + 1];
-        public bool[,] screen_buffer = new bool[128, 64];
-        public Registers registers = new Registers();
-        public Flags flags = new Flags();
-        public delegate void Operate(out ushort moveAmount);
-        public Operate[] opcodes = new Operate[0xFF + 1];
-        public Thread execThread;
+        private enum LogLevel
+        {
+            Info,
+            Warning,
+            Error
+        }
+        private void Log(string message, LogLevel level)
+        {
+            switch (level) {
+                case LogLevel.Info:
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.Write(string.Format("[INFO {0}] ", DateTime.Now));
+                    Console.WriteLine(message);
+                    Console.ResetColor();
+                    break;
+                case LogLevel.Warning:
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.Write(string.Format("[WARNING {0}] ", DateTime.Now));
+                    Console.WriteLine(message);
+                    Console.ResetColor();
+                    break;
+                case LogLevel.Error:
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.Write(string.Format("[ERROR {0}] ", DateTime.Now));
+                    Console.WriteLine(message);
+                    Console.ResetColor();
+                    break;
+            }
+        }
+
+        internal byte[] memory = new byte[ushort.MaxValue + 1];
+        internal bool[,] screen_buffer = new bool[128, 64];
+        private Registers registers = new Registers();
+        private Flags flags = new Flags();
+        private delegate void Operate(out ushort moveAmount);
+        private Operate[] opcodes = new Operate[0xFF + 1];
+        private Thread execThread;
 
         public void Run()
         {
+            Log("Loading CHIP9 Emulator...", LogLevel.Info);
             InitOpcodes();
             registers.PC = 0;
-            byte[] bootromBytes = File.ReadAllBytes("bootrom");
-            byte[] romBytes = File.ReadAllBytes("rom");
+            Log("Loading BOOT rom...", LogLevel.Info);
+            byte[] bootromBytes = new byte[] { 0 };
+            try
+            {
+                bootromBytes = File.ReadAllBytes("bootrom");
+            } catch
+            {
+                Log("BOOT rom not found.", LogLevel.Error);
+                return;
+            }
             Array.Copy(bootromBytes, 0, memory, 0, bootromBytes.Length);
+            Log("BOOT rom loaded.", LogLevel.Info);
+            Log("Loading APP rom...", LogLevel.Info);
+            byte[] romBytes = new byte[] { 0 };
+            try
+            {
+                romBytes = File.ReadAllBytes("rom");
+            } catch
+            {
+                Log("APP rom not found.", LogLevel.Error);
+                return;
+            }
             Array.Copy(romBytes, 0, memory, 0x597, romBytes.Length);
+            Log("APP rom loaded.", LogLevel.Info);
             execThread = new Thread(new ThreadStart(FetchExecute));
+            Log("Starting execution...", LogLevel.Info);
             execThread.Start();
         }
 
-        public void FetchExecute()
+        public void Kill()
+        {
+            execThread?.Abort();
+        }
+
+        private void FetchExecute()
         {
             while (true)
             {
                 byte opcode = memory[registers.PC];
                 if (registers.PC == 0x326) 
                 {
-                    flags.H = true;
+                    flags.H = true; //Hacky fix for broken H register on flag ROM
                 }
                 var operation = opcodes[opcode];
                 if (operation == null)
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine(string.Format("SYSTEM FATAL ERROR: Unknown Opcode {0} at {1}", opcode.ToString("X2"), registers.PC.ToString("X4")));
-                    Console.ResetColor();
+                    Log(string.Format("Unknown Opcode 0x{0} at 0x{1}", opcode.ToString("X2"), registers.PC.ToString("X4")), LogLevel.Error);
                     break;
                 }
                 operation(out ushort moveAmount);
@@ -94,8 +149,9 @@ namespace CHIP9.NET
             }
         }
 
-        public void InitOpcodes()
+        private void InitOpcodes()
         {
+            #region Memory Operations
             //LDI B, xx
             opcodes[0x20] = (out ushort moveAmount) =>
             {
@@ -661,9 +717,7 @@ namespace CHIP9.NET
             //HCF
             opcodes[0x6C] = (out ushort moveAmount) =>
             {
-                Console.ForegroundColor = ConsoleColor.DarkRed;
-                Console.WriteLine("SYSTEM: HALT & CATCH FIRE CALLED");
-                Console.ResetColor();
+                Log("HALT & CATCH FIRE CALLED", LogLevel.Info);
                 moveAmount = 1;
             };
             //MOV (HL), A
@@ -732,6 +786,8 @@ namespace CHIP9.NET
                 registers.HL = registers.DE;
                 moveAmount = 1;
             };
+            #endregion
+            #region Arithmetic
             //CLRFLAG
             opcodes[0x08] = (out ushort moveAmount) =>
             {
@@ -1218,6 +1274,8 @@ namespace CHIP9.NET
                 registers.A -= 1;
                 moveAmount = 1;
             };
+            #endregion
+            #region Logical Operations
             //AND B
             opcodes[0x05] = (out ushort moveAmount) =>
             {
@@ -1572,6 +1630,8 @@ namespace CHIP9.NET
                 registers.A = result;
                 moveAmount = 2;
             };
+            #endregion
+            #region Comparisons
             //CMP B
             opcodes[0x86] = (out ushort moveAmount) =>
             {
@@ -1692,6 +1752,8 @@ namespace CHIP9.NET
                 flags.N = (sbyte)registers.A < (sbyte)registers.A;
                 moveAmount = 1;
             };
+            #endregion
+            #region I/O
             //SIN
             opcodes[0xE0] = (out ushort moveAmount) =>
             {
@@ -1726,6 +1788,8 @@ namespace CHIP9.NET
                 }
                 moveAmount = 1;
             };
+            #endregion
+            #region Branching
             //JMP xxyy
             opcodes[0x0F] = (out ushort moveAmount) =>
             {
@@ -1974,11 +2038,14 @@ namespace CHIP9.NET
                 registers.PC = val;
                 moveAmount = 0;
             };
+            #endregion
+            #region Misc
             //NOP
             opcodes[0x00] = (out ushort moveAmount) =>
             {
                 moveAmount = 1;
             };
+            #endregion
         }
     }
 }
