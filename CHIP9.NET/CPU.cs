@@ -38,7 +38,7 @@ namespace CHIP9.NET
 
         [FieldOffset(7)]
         public ushort SP;
-        [FieldOffset(8)]
+        [FieldOffset(9)]
         public ushort PC;
     }
 
@@ -81,7 +81,7 @@ namespace CHIP9.NET
                 if (operation == null)
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine(string.Format("SYSTEM FATAL ERROR: Unknown Opcode {0}", opcode));
+                    Console.WriteLine(string.Format("SYSTEM FATAL ERROR: Unknown Opcode {0}", opcode.ToString("X2")));
                     Console.ResetColor();
                     break;
                 }
@@ -788,49 +788,937 @@ namespace CHIP9.NET
             //ADD B
             opcodes[0x04] = (out ushort moveAmount) =>
             {
+                flags.Z = registers.B + registers.A == 0;
+                flags.N = ((registers.B + registers.A) & 0b10000000) != 0;
+                flags.H = (registers.B & 0xF) > (0xF - (registers.A & 0xF));
+                flags.C = registers.B > (0xFF - registers.A);
+
                 registers.B += registers.A;
                 moveAmount = 1;
             };
             //ADD C
             opcodes[0x14] = (out ushort moveAmount) =>
             {
+                flags.Z = registers.C + registers.A == 0;
+                flags.N = ((registers.C + registers.A) & 0b10000000) != 0;
+                flags.H = (registers.C & 0xF) > (0xF - (registers.A & 0xF));
+                flags.C = registers.C > (0xFF - registers.A);
+
                 registers.C += registers.A;
                 moveAmount = 1;
             };
             //ADD D
             opcodes[0x24] = (out ushort moveAmount) =>
             {
+                flags.Z = registers.D + registers.A == 0;
+                flags.N = ((registers.D + registers.A) & 0b10000000) != 0;
+                flags.H = (registers.D & 0xF) > (0xF - (registers.A & 0xF));
+                flags.C = registers.D > (0xFF - registers.A);
+
                 registers.D += registers.A;
                 moveAmount = 1;
             };
             //ADD E
             opcodes[0x34] = (out ushort moveAmount) =>
             {
+                flags.Z = registers.E + registers.A == 0;
+                flags.N = ((registers.E + registers.A) & 0b10000000) != 0;
+                flags.H = (registers.E & 0xF) > (0xF - (registers.A & 0xF));
+                flags.C = registers.E > (0xFF - registers.A);
+
                 registers.E += registers.A;
                 moveAmount = 1;
             };
             //ADD H
             opcodes[0x44] = (out ushort moveAmount) =>
             {
+                flags.Z = registers.H + registers.A == 0;
+                flags.N = ((registers.H + registers.A) & 0b10000000) != 0;
+                flags.H = (registers.H & 0xF) > (0xF - (registers.A & 0xF));
+                flags.C = registers.H > (0xFF - registers.A);
+
                 registers.H += registers.A;
                 moveAmount = 1;
             };
             //ADD L
             opcodes[0x54] = (out ushort moveAmount) =>
             {
+                flags.Z = registers.L + registers.A == 0;
+                flags.N = ((registers.L + registers.A) & 0b10000000) != 0;
+                flags.H = (registers.L & 0xF) > (0xF - (registers.A & 0xF));
+                flags.C = registers.L > (0xFF - registers.A);
+
                 registers.L += registers.A;
                 moveAmount = 1;
             };
             //ADD (HL)
             opcodes[0x64] = (out ushort moveAmount) =>
             {
+                flags.Z = memory[registers.HL] + registers.A == 0;
+                flags.N = ((memory[registers.HL] + registers.A) & 0b10000000) != 0;
+                flags.H = (memory[registers.HL] & 0xF) > (0xF - (registers.A & 0xF));
+                flags.C = memory[registers.HL] > (0xFF - registers.A);
+
                 memory[registers.HL] += registers.A;
                 moveAmount = 1;
             };
             //ADD A
             opcodes[0x74] = (out ushort moveAmount) =>
             {
+                flags.Z = registers.A + registers.A == 0;
+                flags.N = ((registers.A + registers.A) & 0b10000000) != 0;
+                flags.H = (registers.A & 0xF) > (0xF - (registers.A & 0xF));
+                flags.C = registers.A > (0xFF - registers.A);
+
                 registers.A += registers.A;
+                moveAmount = 1;
+            };
+            //ADDI xx
+            opcodes[0xA7] = (out ushort moveAmount) =>
+            {
+                byte xx = memory[registers.PC + 1];
+
+                flags.Z = xx + registers.A == 0;
+                flags.N = ((xx + registers.A) & 0b10000000) != 0;
+                flags.H = (xx & 0xF) > (0xF - (registers.A & 0xF));
+                flags.C = xx > (0xFF - registers.A);
+
+                registers.A += xx;
+                moveAmount = 2;
+            };
+            //ADDX BC
+            opcodes[0x83] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.BC + registers.A == 0;
+                flags.N = ((registers.BC + registers.A) & 0b1000000000000000) != 0;
+                flags.H = (registers.BC & 0xF) > (0xF - (registers.A & 0xF));
+                flags.C = registers.BC > (0xFFFF - registers.A);
+
+                registers.BC += registers.A;
+                moveAmount = 1;
+            };
+            //ADDX DE
+            opcodes[0x93] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.DE + registers.A == 0;
+                flags.N = ((registers.DE + registers.A) & 0b1000000000000000) != 0;
+                flags.H = (registers.DE & 0xF) > (0xF - (registers.A & 0xF));
+                flags.C = registers.DE > (0xFFFF - registers.A);
+
+                registers.DE += registers.A;
+                moveAmount = 1;
+            };
+            //ADDX HL
+            opcodes[0xA3] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.HL + registers.A == 0;
+                flags.N = ((registers.HL + registers.A) & 0b1000000000000000) != 0;
+                flags.H = (registers.HL & 0xF) > (0xF - (registers.A & 0xF));
+                flags.C = registers.HL > (0xFFFF - registers.A);
+
+                registers.HL += registers.A;
+                moveAmount = 1;
+            };
+            //SUB B
+            opcodes[0x84] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.B - registers.A == 0;
+                flags.N = ((registers.B - registers.A) & 0b10000000) != 0;
+                flags.H = (registers.B & 0xF) < (registers.A & 0xF);
+                flags.C = registers.B < registers.A;
+
+                registers.B -= registers.A;
+                moveAmount = 1;
+            };
+            //SUB C
+            opcodes[0x94] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.C - registers.A == 0;
+                flags.N = ((registers.C - registers.A) & 0b10000000) != 0;
+                flags.H = (registers.C & 0xF) < (registers.A & 0xF);
+                flags.C = registers.C < registers.A;
+
+                registers.C -= registers.A;
+                moveAmount = 1;
+            };
+            //SUB D
+            opcodes[0xA4] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.D - registers.A == 0;
+                flags.N = ((registers.D - registers.A) & 0b10000000) != 0;
+                flags.H = (registers.D & 0xF) < (registers.A & 0xF);
+                flags.C = registers.D < registers.A;
+
+                registers.D -= registers.A;
+                moveAmount = 1;
+            };
+            //SUB E
+            opcodes[0xB4] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.E - registers.A == 0;
+                flags.N = ((registers.E - registers.A) & 0b10000000) != 0;
+                flags.H = (registers.E & 0xF) < (registers.A & 0xF);
+                flags.C = registers.E < registers.A;
+
+                registers.E -= registers.A;
+                moveAmount = 1;
+            };
+            //SUB H
+            opcodes[0xC4] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.H - registers.A == 0;
+                flags.N = ((registers.H - registers.A) & 0b10000000) != 0;
+                flags.H = (registers.H & 0xF) < (registers.A & 0xF);
+                flags.C = registers.H < registers.A;
+
+                registers.H -= registers.A;
+                moveAmount = 1;
+            };
+            //SUB L
+            opcodes[0xD4] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.L - registers.A == 0;
+                flags.N = ((registers.L - registers.A) & 0b10000000) != 0;
+                flags.H = (registers.L & 0xF) < (registers.A & 0xF);
+                flags.C = registers.L < registers.A;
+
+                registers.L -= registers.A;
+                moveAmount = 1;
+            };
+            //SUB (HL)
+            opcodes[0xE4] = (out ushort moveAmount) =>
+            {
+                flags.Z = memory[registers.HL] - registers.A == 0;
+                flags.N = ((memory[registers.HL] - registers.A) & 0b10000000) != 0;
+                flags.H = (memory[registers.HL] & 0xF) < (registers.A & 0xF);
+                flags.C = memory[registers.HL] < registers.A;
+
+                memory[registers.HL] -= registers.A;
+                moveAmount = 1;
+            };
+            //SUB A
+            opcodes[0xF4] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.A - registers.A == 0;
+                flags.N = ((registers.A - registers.A) & 0b10000000) != 0;
+                flags.H = (registers.A & 0xF) < (registers.A & 0xF);
+                flags.C = registers.A < registers.A;
+
+                registers.A -= registers.A;
+                moveAmount = 1;
+            };
+            //SUBI xx
+            opcodes[0xB7] = (out ushort moveAmount) =>
+            {
+                byte xx = memory[registers.PC + 1];
+
+                flags.Z = registers.A - xx == 0;
+                flags.N = ((registers.A - xx) & 0b10000000) != 0;
+                flags.H = (registers.A & 0xF) < (xx & 0xF);
+                flags.C = registers.A < xx;
+
+                registers.A -= xx;
+                moveAmount = 2;
+            };
+            //INC B
+            opcodes[0x03] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.B + 1 == 0;
+                flags.N = ((registers.B + 1) & 0b10000000) != 0;
+                flags.H = (registers.B & 0xF) > (0xF - (1 & 0xF));
+                flags.C = registers.B > (0xFF - 1);
+
+                registers.B += 1;
+                moveAmount = 1;
+            };
+            //INC C
+            opcodes[0x13] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.C + 1 == 0;
+                flags.N = ((registers.C + 1) & 0b10000000) != 0;
+                flags.H = (registers.C & 0xF) > (0xF - (1 & 0xF));
+                flags.C = registers.C > (0xFF - 1);
+
+                registers.C += 1;
+                moveAmount = 1;
+            };
+            //INC D
+            opcodes[0x23] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.D + 1 == 0;
+                flags.N = ((registers.D + 1) & 0b10000000) != 0;
+                flags.H = (registers.D & 0xF) > (0xF - (1 & 0xF));
+                flags.C = registers.D > (0xFF - 1);
+
+                registers.D += 1;
+                moveAmount = 1;
+            };
+            //INC E
+            opcodes[0x33] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.E + 1 == 0;
+                flags.N = ((registers.E + 1) & 0b10000000) != 0;
+                flags.H = (registers.E & 0xF) > (0xF - (1 & 0xF));
+                flags.C = registers.E > (0xFF - 1);
+
+                registers.E += 1;
+                moveAmount = 1;
+            };
+            //INC H
+            opcodes[0x43] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.H + 1 == 0;
+                flags.N = ((registers.H + 1) & 0b10000000) != 0;
+                flags.H = (registers.H & 0xF) > (0xF - (1 & 0xF));
+                flags.C = registers.H > (0xFF - 1);
+
+                registers.H += 1;
+                moveAmount = 1;
+            };
+            //INC L
+            opcodes[0x53] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.L + 1 == 0;
+                flags.N = ((registers.L + 1) & 0b10000000) != 0;
+                flags.H = (registers.L & 0xF) > (0xF - (1 & 0xF));
+                flags.C = registers.L > (0xFF - 1);
+
+                registers.L += 1;
+                moveAmount = 1;
+            };
+            //INC (HL)
+            opcodes[0x63] = (out ushort moveAmount) =>
+            {
+                flags.Z = memory[registers.HL] + 1 == 0;
+                flags.N = ((memory[registers.HL] + 1) & 0b10000000) != 0;
+                flags.H = (memory[registers.HL] & 0xF) > (0xF - (1 & 0xF));
+                flags.C = memory[registers.HL] > (0xFF - 1);
+
+                memory[registers.HL] += 1;
+                moveAmount = 1;
+            };
+            //INC A
+            opcodes[0x73] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.A + 1 == 0;
+                flags.N = ((registers.A + 1) & 0b10000000) != 0;
+                flags.H = (registers.A & 0xF) > (0xF - (1 & 0xF));
+                flags.C = registers.A > (0xFF - 1);
+
+                registers.A += 1;
+                moveAmount = 1;
+            };
+            //INX BC
+            opcodes[0xA8] = (out ushort moveAmount) =>
+            {
+                registers.BC++;
+                moveAmount = 1;
+            };
+            //INX DE
+            opcodes[0xB8] = (out ushort moveAmount) =>
+            {
+                registers.DE++;
+                moveAmount = 1;
+            };
+            //INX HL
+            opcodes[0xC8] = (out ushort moveAmount) =>
+            {
+                registers.HL++;
+                moveAmount = 1;
+            };
+            //DEC B
+            opcodes[0x07] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.B - 1 == 0;
+                flags.N = ((registers.B - 1) & 0b10000000) != 0;
+                flags.H = (registers.B & 0xF) < (1 & 0xF);
+                flags.C = registers.B < 1;
+
+                registers.B -= 1;
+                moveAmount = 1;
+            };
+            //DEC C
+            opcodes[0x17] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.C - 1 == 0;
+                flags.N = ((registers.C - 1) & 0b10000000) != 0;
+                flags.H = (registers.C & 0xF) < (1 & 0xF);
+                flags.C = registers.C < 1;
+
+                registers.C -= 1;
+                moveAmount = 1;
+            };
+            //DEC D
+            opcodes[0x27] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.D - 1 == 0;
+                flags.N = ((registers.D - 1) & 0b10000000) != 0;
+                flags.H = (registers.D & 0xF) < (1 & 0xF);
+                flags.C = registers.D < 1;
+
+                registers.D -= 1;
+                moveAmount = 1;
+            };
+            //DEC E
+            opcodes[0x37] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.E - 1 == 0;
+                flags.N = ((registers.E - 1) & 0b10000000) != 0;
+                flags.H = (registers.E & 0xF) < (1 & 0xF);
+                flags.C = registers.E < 1;
+
+                registers.E -= 1;
+                moveAmount = 1;
+            };
+            //DEC H
+            opcodes[0x47] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.H - 1 == 0;
+                flags.N = ((registers.H - 1) & 0b10000000) != 0;
+                flags.H = (registers.H & 0xF) < (1 & 0xF);
+                flags.C = registers.H < 1;
+
+                registers.H -= 1;
+                moveAmount = 1;
+            };
+            //DEC L
+            opcodes[0x57] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.L - 1 == 0;
+                flags.N = ((registers.L - 1) & 0b10000000) != 0;
+                flags.H = (registers.L & 0xF) < (1 & 0xF);
+                flags.C = registers.L < 1;
+
+                registers.L -= 1;
+                moveAmount = 1;
+            };
+            //DEC (HL)
+            opcodes[0x67] = (out ushort moveAmount) =>
+            {
+                flags.Z = memory[registers.HL] - 1 == 0;
+                flags.N = ((memory[registers.HL] - 1) & 0b10000000) != 0;
+                flags.H = (memory[registers.HL] & 0xF) < (1 & 0xF);
+                flags.C = memory[registers.HL] < 1;
+
+                memory[registers.HL] -= 1;
+                moveAmount = 1;
+            };
+            //DEC A
+            opcodes[0x77] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.A - 1 == 0;
+                flags.N = ((registers.A - 1) & 0b10000000) != 0;
+                flags.H = (registers.A & 0xF) < (1 & 0xF);
+                flags.C = registers.A < 1;
+
+                registers.A -= 1;
+                moveAmount = 1;
+            };
+            //AND B
+            opcodes[0x05] = (out ushort moveAmount) =>
+            {
+                byte result = (byte)(registers.B & registers.A);
+
+                flags.Z = result == 0;
+                flags.N = (result & 0b10000000) != 0;
+                flags.H = false;
+                flags.C = false;
+
+                registers.B = result;
+                moveAmount = 1;
+            };
+            //AND C
+            opcodes[0x15] = (out ushort moveAmount) =>
+            {
+                byte result = (byte)(registers.C & registers.A);
+
+                flags.Z = result == 0;
+                flags.N = (result & 0b10000000) != 0;
+                flags.H = false;
+                flags.C = false;
+
+                registers.C = result;
+                moveAmount = 1;
+            };
+            //AND D
+            opcodes[0x25] = (out ushort moveAmount) =>
+            {
+                byte result = (byte)(registers.D & registers.A);
+
+                flags.Z = result == 0;
+                flags.N = (result & 0b10000000) != 0;
+                flags.H = false;
+                flags.C = false;
+
+                registers.D = result;
+                moveAmount = 1;
+            };
+            //AND E
+            opcodes[0x35] = (out ushort moveAmount) =>
+            {
+                byte result = (byte)(registers.E & registers.A);
+
+                flags.Z = result == 0;
+                flags.N = (result & 0b10000000) != 0;
+                flags.H = false;
+                flags.C = false;
+
+                registers.E = result;
+                moveAmount = 1;
+            };
+            //AND H
+            opcodes[0x45] = (out ushort moveAmount) =>
+            {
+                byte result = (byte)(registers.H & registers.A);
+
+                flags.Z = result == 0;
+                flags.N = (result & 0b10000000) != 0;
+                flags.H = false;
+                flags.C = false;
+
+                registers.H = result;
+                moveAmount = 1;
+            };
+            //AND L
+            opcodes[0x55] = (out ushort moveAmount) =>
+            {
+                byte result = (byte)(registers.L & registers.A);
+
+                flags.Z = result == 0;
+                flags.N = (result & 0b10000000) != 0;
+                flags.H = false;
+                flags.C = false;
+
+                registers.L = result;
+                moveAmount = 1;
+            };
+            //AND (HL)
+            opcodes[0x65] = (out ushort moveAmount) =>
+            {
+                byte result = (byte)(memory[registers.HL] & registers.A);
+
+                flags.Z = result == 0;
+                flags.N = (result & 0b10000000) != 0;
+                flags.H = false;
+                flags.C = false;
+
+                memory[registers.HL] = result;
+                moveAmount = 1;
+            };
+            //AND A
+            opcodes[0x75] = (out ushort moveAmount) =>
+            {
+                byte result = (byte)(registers.A & registers.A);
+
+                flags.Z = result == 0;
+                flags.N = (result & 0b10000000) != 0;
+                flags.H = false;
+                flags.C = false;
+
+                registers.A = result;
+                moveAmount = 1;
+            };
+            //ANDI xx
+            opcodes[0xC7] = (out ushort moveAmount) =>
+            {
+                byte xx = memory[registers.PC + 1];
+                byte result = (byte)(registers.A & xx);
+
+                flags.Z = result == 0;
+                flags.N = (result & 0b10000000) != 0;
+                flags.H = false;
+                flags.C = false;
+
+                registers.A = result;
+                moveAmount = 2;
+            };
+            //OR B
+            opcodes[0x05] = (out ushort moveAmount) =>
+            {
+                byte result = (byte)(registers.B | registers.A);
+
+                flags.Z = result == 0;
+                flags.N = (result & 0b10000000) != 0;
+                flags.H = false;
+                flags.C = false;
+
+                registers.B = result;
+                moveAmount = 1;
+            };
+            //OR C
+            opcodes[0x15] = (out ushort moveAmount) =>
+            {
+                byte result = (byte)(registers.C | registers.A);
+
+                flags.Z = result == 0;
+                flags.N = (result & 0b10000000) != 0;
+                flags.H = false;
+                flags.C = false;
+
+                registers.C = result;
+                moveAmount = 1;
+            };
+            //OR D
+            opcodes[0x25] = (out ushort moveAmount) =>
+            {
+                byte result = (byte)(registers.D | registers.A);
+
+                flags.Z = result == 0;
+                flags.N = (result & 0b10000000) != 0;
+                flags.H = false;
+                flags.C = false;
+
+                registers.D = result;
+                moveAmount = 1;
+            };
+            //OR E
+            opcodes[0x35] = (out ushort moveAmount) =>
+            {
+                byte result = (byte)(registers.E | registers.A);
+
+                flags.Z = result == 0;
+                flags.N = (result & 0b10000000) != 0;
+                flags.H = false;
+                flags.C = false;
+
+                registers.E = result;
+                moveAmount = 1;
+            };
+            //OR H
+            opcodes[0x45] = (out ushort moveAmount) =>
+            {
+                byte result = (byte)(registers.H | registers.A);
+
+                flags.Z = result == 0;
+                flags.N = (result & 0b10000000) != 0;
+                flags.H = false;
+                flags.C = false;
+
+                registers.H = result;
+                moveAmount = 1;
+            };
+            //OR L
+            opcodes[0x55] = (out ushort moveAmount) =>
+            {
+                byte result = (byte)(registers.L | registers.A);
+
+                flags.Z = result == 0;
+                flags.N = (result & 0b10000000) != 0;
+                flags.H = false;
+                flags.C = false;
+
+                registers.L = result;
+                moveAmount = 1;
+            };
+            //OR (HL)
+            opcodes[0x65] = (out ushort moveAmount) =>
+            {
+                byte result = (byte)(memory[registers.HL] | registers.A);
+
+                flags.Z = result == 0;
+                flags.N = (result & 0b10000000) != 0;
+                flags.H = false;
+                flags.C = false;
+
+                memory[registers.HL] = result;
+                moveAmount = 1;
+            };
+            //OR A
+            opcodes[0x75] = (out ushort moveAmount) =>
+            {
+                byte result = (byte)(registers.A | registers.A);
+
+                flags.Z = result == 0;
+                flags.N = (result & 0b10000000) != 0;
+                flags.H = false;
+                flags.C = false;
+
+                registers.A = result;
+                moveAmount = 1;
+            };
+            //ORI xx
+            opcodes[0xD7] = (out ushort moveAmount) =>
+            {
+                byte xx = memory[registers.PC + 1];
+                byte result = (byte)(registers.A | xx);
+
+                flags.Z = result == 0;
+                flags.N = (result & 0b10000000) != 0;
+                flags.H = false;
+                flags.C = false;
+
+                registers.A = result;
+                moveAmount = 2;
+            };
+            //XOR B
+            opcodes[0x06] = (out ushort moveAmount) =>
+            {
+                byte result = (byte)(registers.B ^ registers.A);
+
+                flags.Z = result == 0;
+                flags.N = (result & 0b10000000) != 0;
+                flags.H = false;
+                flags.C = false;
+
+                registers.B = result;
+                moveAmount = 1;
+            };
+            //XOR C
+            opcodes[0x16] = (out ushort moveAmount) =>
+            {
+                byte result = (byte)(registers.C ^ registers.A);
+
+                flags.Z = result == 0;
+                flags.N = (result & 0b10000000) != 0;
+                flags.H = false;
+                flags.C = false;
+
+                registers.C = result;
+                moveAmount = 1;
+            };
+            //XOR D
+            opcodes[0x26] = (out ushort moveAmount) =>
+            {
+                byte result = (byte)(registers.D ^ registers.A);
+
+                flags.Z = result == 0;
+                flags.N = (result & 0b10000000) != 0;
+                flags.H = false;
+                flags.C = false;
+
+                registers.D = result;
+                moveAmount = 1;
+            };
+            //XOR E
+            opcodes[0x36] = (out ushort moveAmount) =>
+            {
+                byte result = (byte)(registers.E ^ registers.A);
+
+                flags.Z = result == 0;
+                flags.N = (result & 0b10000000) != 0;
+                flags.H = false;
+                flags.C = false;
+
+                registers.E = result;
+                moveAmount = 1;
+            };
+            //XOR H
+            opcodes[0x46] = (out ushort moveAmount) =>
+            {
+                byte result = (byte)(registers.H ^ registers.A);
+
+                flags.Z = result == 0;
+                flags.N = (result & 0b10000000) != 0;
+                flags.H = false;
+                flags.C = false;
+
+                registers.H = result;
+                moveAmount = 1;
+            };
+            //XOR L
+            opcodes[0x56] = (out ushort moveAmount) =>
+            {
+                byte result = (byte)(registers.L ^ registers.A);
+
+                flags.Z = result == 0;
+                flags.N = (result & 0b10000000) != 0;
+                flags.H = false;
+                flags.C = false;
+
+                registers.L = result;
+                moveAmount = 1;
+            };
+            //XOR (HL)
+            opcodes[0x66] = (out ushort moveAmount) =>
+            {
+                byte result = (byte)(memory[registers.HL] ^ registers.A);
+
+                flags.Z = result == 0;
+                flags.N = (result & 0b10000000) != 0;
+                flags.H = false;
+                flags.C = false;
+
+                memory[registers.HL] = result;
+                moveAmount = 1;
+            };
+            //XOR A
+            opcodes[0x76] = (out ushort moveAmount) =>
+            {
+                byte result = (byte)(registers.A ^ registers.A);
+
+                flags.Z = result == 0;
+                flags.N = (result & 0b10000000) != 0;
+                flags.H = false;
+                flags.C = false;
+
+                registers.A = result;
+                moveAmount = 1;
+            };
+            //XORI xx
+            opcodes[0xE7] = (out ushort moveAmount) =>
+            {
+                byte xx = memory[registers.PC + 1];
+                byte result = (byte)(registers.A ^ xx);
+
+                flags.Z = result == 0;
+                flags.N = (result & 0b10000000) != 0;
+                flags.H = false;
+                flags.C = false;
+
+                registers.A = result;
+                moveAmount = 2;
+            };
+            //CMP B
+            opcodes[0x86] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.B == registers.A;
+                flags.N = registers.B < registers.A;
+                moveAmount = 1;
+            };
+            //CMP C
+            opcodes[0x96] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.C == registers.A;
+                flags.N = registers.C < registers.A;
+                moveAmount = 1;
+            };
+            //CMP D
+            opcodes[0xA6] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.D == registers.A;
+                flags.N = registers.D < registers.A;
+                moveAmount = 1;
+            };
+            //CMP E
+            opcodes[0xB6] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.E == registers.A;
+                flags.N = registers.E < registers.A;
+                moveAmount = 1;
+            };
+            //CMP H
+            opcodes[0xC6] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.H == registers.A;
+                flags.N = registers.H < registers.A;
+                moveAmount = 1;
+            };
+            //CMP L
+            opcodes[0xD6] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.L == registers.A;
+                flags.N = registers.L < registers.A;
+                moveAmount = 1;
+            };
+            //CMP (HL)
+            opcodes[0xE6] = (out ushort moveAmount) =>
+            {
+                flags.Z = memory[registers.HL] == registers.A;
+                flags.N = memory[registers.HL] < registers.A;
+                moveAmount = 1;
+            };
+            //CMP A
+            opcodes[0xF6] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.A == registers.A;
+                flags.N = registers.A < registers.A;
+                moveAmount = 1;
+            };
+            //CMPI A xx
+            opcodes[0xF7] = (out ushort moveAmount) =>
+            {
+                byte xx = memory[registers.PC + 1];
+                flags.Z = registers.A == xx;
+                flags.N = registers.A < xx;
+                moveAmount = 2;
+            };
+            //CMPS B
+            opcodes[0x0D] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.B == registers.A;
+                flags.N = registers.B < registers.A;
+                moveAmount = 1;
+            };
+            //CMPS C
+            opcodes[0x1D] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.C == registers.A;
+                flags.N = registers.C < registers.A;
+                moveAmount = 1;
+            };
+            //CMPS D
+            opcodes[0x2D] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.D == registers.A;
+                flags.N = (sbyte)registers.D < (sbyte)registers.A;
+                moveAmount = 1;
+            };
+            //CMPS E
+            opcodes[0x3D] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.E == registers.A;
+                flags.N = (sbyte)registers.E < (sbyte)registers.A;
+                moveAmount = 1;
+            };
+            //CMPS H
+            opcodes[0x4D] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.H == registers.A;
+                flags.N = (sbyte)registers.H < (sbyte)registers.A;
+                moveAmount = 1;
+            };
+            //CMPS L
+            opcodes[0x5D] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.L == registers.A;
+                flags.N = (sbyte)registers.L < (sbyte)registers.A;
+                moveAmount = 1;
+            };
+            //CMPS (HL)
+            opcodes[0x6D] = (out ushort moveAmount) =>
+            {
+                flags.Z = memory[registers.HL] == registers.A;
+                flags.N = (sbyte)memory[registers.HL] < (sbyte)registers.A;
+                moveAmount = 1;
+            };
+            //CMPS A
+            opcodes[0x7D] = (out ushort moveAmount) =>
+            {
+                flags.Z = registers.A == registers.A;
+                flags.N = (sbyte)registers.A < (sbyte)registers.A;
+                moveAmount = 1;
+            };
+            //SIN
+            opcodes[0xE0] = (out ushort moveAmount) =>
+            {
+                registers.A = (byte)Console.Read();
+                moveAmount = 1;
+            };
+            //SOUT
+            opcodes[0xE1] = (out ushort moveAmount) =>
+            {
+                Console.Write((char)registers.A);
+                moveAmount = 1;
+            };
+            //CLRSCR
+            opcodes[0xF0] = (out ushort moveAmount) =>
+            {
+                Array.Clear(screen_buffer, 0, screen_buffer.Length);
+                moveAmount = 1;
+            };
+            //DRAW
+            opcodes[0xF1] = (out ushort moveAmount) =>
+            {
+                byte line = registers.A;
+                sbyte x = (sbyte)registers.C;
+                sbyte y = (sbyte)registers.B;
+                for (byte i = 7; i >= 0; i--)
+                {
+                    byte lx = (byte)(7 - i);
+                    if (x + lx < 0 || x + lx > 127) continue;
+                    bool state = (line & (1 << i)) >> i == 1 ? true : false;
+                    screen_buffer[x + lx, y] = state;
+                }
                 moveAmount = 1;
             };
         }
