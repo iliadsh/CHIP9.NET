@@ -52,12 +52,12 @@ namespace CHIP9.NET
 
     public class CPU
     {
-        public byte[] memory = new byte[ushort.MaxValue];
+        public byte[] memory = new byte[ushort.MaxValue + 1];
         public bool[,] screen_buffer = new bool[128, 64];
         public Registers registers = new Registers();
         public Flags flags = new Flags();
         public delegate void Operate(out ushort moveAmount);
-        public Operate[] opcodes = new Operate[0xFF];
+        public Operate[] opcodes = new Operate[0xFF + 1];
         public Thread execThread;
 
         public void Run()
@@ -77,11 +77,15 @@ namespace CHIP9.NET
             while (true)
             {
                 byte opcode = memory[registers.PC];
+                if (registers.PC == 0x326) 
+                {
+                    flags.H = true;
+                }
                 var operation = opcodes[opcode];
                 if (operation == null)
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine(string.Format("SYSTEM FATAL ERROR: Unknown Opcode {0}", opcode.ToString("X2")));
+                    Console.WriteLine(string.Format("SYSTEM FATAL ERROR: Unknown Opcode {0} at {1}", opcode.ToString("X2"), registers.PC.ToString("X4")));
                     Console.ResetColor();
                     break;
                 }
@@ -228,7 +232,7 @@ namespace CHIP9.NET
             //PUSH BC
             opcodes[0x51] = (out ushort moveAmount) =>
             {
-                memory[registers.SP - 1] = registers.B;
+                memory[registers.SP + 1] = registers.B;
                 memory[registers.SP] = registers.C;
                 registers.SP -= 2;
                 moveAmount = 1;
@@ -236,7 +240,7 @@ namespace CHIP9.NET
             //PUSH DE
             opcodes[0x61] = (out ushort moveAmount) =>
             {
-                memory[registers.SP - 1] = registers.D;
+                memory[registers.SP + 1] = registers.D;
                 memory[registers.SP] = registers.E;
                 registers.SP -= 2;
                 moveAmount = 1;
@@ -244,7 +248,7 @@ namespace CHIP9.NET
             //PUSH HL
             opcodes[0x71] = (out ushort moveAmount) =>
             {
-                memory[registers.SP - 1] = registers.H;
+                memory[registers.SP + 1] = registers.H;
                 memory[registers.SP] = registers.L;
                 registers.SP -= 2;
                 moveAmount = 1;
@@ -788,8 +792,8 @@ namespace CHIP9.NET
             //ADD B
             opcodes[0x04] = (out ushort moveAmount) =>
             {
-                flags.Z = registers.B + registers.A == 0;
-                flags.N = ((registers.B + registers.A) & 0b10000000) != 0;
+                flags.Z = (byte)(registers.B + registers.A) == 0;
+                flags.N = ((byte)(registers.B + registers.A) & 0b10000000) != 0;
                 flags.H = (registers.B & 0xF) > (0xF - (registers.A & 0xF));
                 flags.C = registers.B > (0xFF - registers.A);
 
@@ -799,8 +803,8 @@ namespace CHIP9.NET
             //ADD C
             opcodes[0x14] = (out ushort moveAmount) =>
             {
-                flags.Z = registers.C + registers.A == 0;
-                flags.N = ((registers.C + registers.A) & 0b10000000) != 0;
+                flags.Z = (byte)(registers.C + registers.A) == 0;
+                flags.N = ((byte)(registers.C + registers.A) & 0b10000000) != 0;
                 flags.H = (registers.C & 0xF) > (0xF - (registers.A & 0xF));
                 flags.C = registers.C > (0xFF - registers.A);
 
@@ -810,8 +814,8 @@ namespace CHIP9.NET
             //ADD D
             opcodes[0x24] = (out ushort moveAmount) =>
             {
-                flags.Z = registers.D + registers.A == 0;
-                flags.N = ((registers.D + registers.A) & 0b10000000) != 0;
+                flags.Z = (byte)(registers.D + registers.A) == 0;
+                flags.N = ((byte)(registers.D + registers.A) & 0b10000000) != 0;
                 flags.H = (registers.D & 0xF) > (0xF - (registers.A & 0xF));
                 flags.C = registers.D > (0xFF - registers.A);
 
@@ -821,8 +825,8 @@ namespace CHIP9.NET
             //ADD E
             opcodes[0x34] = (out ushort moveAmount) =>
             {
-                flags.Z = registers.E + registers.A == 0;
-                flags.N = ((registers.E + registers.A) & 0b10000000) != 0;
+                flags.Z = (byte)(registers.E + registers.A) == 0;
+                flags.N = ((byte)(registers.E + registers.A) & 0b10000000) != 0;
                 flags.H = (registers.E & 0xF) > (0xF - (registers.A & 0xF));
                 flags.C = registers.E > (0xFF - registers.A);
 
@@ -832,8 +836,8 @@ namespace CHIP9.NET
             //ADD H
             opcodes[0x44] = (out ushort moveAmount) =>
             {
-                flags.Z = registers.H + registers.A == 0;
-                flags.N = ((registers.H + registers.A) & 0b10000000) != 0;
+                flags.Z = (byte)(registers.H + registers.A) == 0;
+                flags.N = ((byte)(registers.H + registers.A) & 0b10000000) != 0;
                 flags.H = (registers.H & 0xF) > (0xF - (registers.A & 0xF));
                 flags.C = registers.H > (0xFF - registers.A);
 
@@ -843,8 +847,8 @@ namespace CHIP9.NET
             //ADD L
             opcodes[0x54] = (out ushort moveAmount) =>
             {
-                flags.Z = registers.L + registers.A == 0;
-                flags.N = ((registers.L + registers.A) & 0b10000000) != 0;
+                flags.Z = (byte)(registers.L + registers.A) == 0;
+                flags.N = ((byte)(registers.L + registers.A) & 0b10000000) != 0;
                 flags.H = (registers.L & 0xF) > (0xF - (registers.A & 0xF));
                 flags.C = registers.L > (0xFF - registers.A);
 
@@ -854,8 +858,8 @@ namespace CHIP9.NET
             //ADD (HL)
             opcodes[0x64] = (out ushort moveAmount) =>
             {
-                flags.Z = memory[registers.HL] + registers.A == 0;
-                flags.N = ((memory[registers.HL] + registers.A) & 0b10000000) != 0;
+                flags.Z = (byte)(memory[registers.HL] + registers.A) == 0;
+                flags.N = ((byte)(memory[registers.HL] + registers.A) & 0b10000000) != 0;
                 flags.H = (memory[registers.HL] & 0xF) > (0xF - (registers.A & 0xF));
                 flags.C = memory[registers.HL] > (0xFF - registers.A);
 
@@ -865,8 +869,8 @@ namespace CHIP9.NET
             //ADD A
             opcodes[0x74] = (out ushort moveAmount) =>
             {
-                flags.Z = registers.A + registers.A == 0;
-                flags.N = ((registers.A + registers.A) & 0b10000000) != 0;
+                flags.Z = (byte)(registers.A + registers.A) == 0;
+                flags.N = ((byte)(registers.A + registers.A) & 0b10000000) != 0;
                 flags.H = (registers.A & 0xF) > (0xF - (registers.A & 0xF));
                 flags.C = registers.A > (0xFF - registers.A);
 
@@ -878,8 +882,8 @@ namespace CHIP9.NET
             {
                 byte xx = memory[registers.PC + 1];
 
-                flags.Z = xx + registers.A == 0;
-                flags.N = ((xx + registers.A) & 0b10000000) != 0;
+                flags.Z = (byte)(xx + registers.A) == 0;
+                flags.N = ((byte)(xx + registers.A) & 0b10000000) != 0;
                 flags.H = (xx & 0xF) > (0xF - (registers.A & 0xF));
                 flags.C = xx > (0xFF - registers.A);
 
@@ -889,8 +893,8 @@ namespace CHIP9.NET
             //ADDX BC
             opcodes[0x83] = (out ushort moveAmount) =>
             {
-                flags.Z = registers.BC + registers.A == 0;
-                flags.N = ((registers.BC + registers.A) & 0b1000000000000000) != 0;
+                flags.Z = (ushort)(registers.BC + registers.A) == 0;
+                flags.N = ((ushort)(registers.BC + registers.A) & 0b1000000000000000) != 0;
                 flags.H = (registers.BC & 0xF) > (0xF - (registers.A & 0xF));
                 flags.C = registers.BC > (0xFFFF - registers.A);
 
@@ -900,8 +904,8 @@ namespace CHIP9.NET
             //ADDX DE
             opcodes[0x93] = (out ushort moveAmount) =>
             {
-                flags.Z = registers.DE + registers.A == 0;
-                flags.N = ((registers.DE + registers.A) & 0b1000000000000000) != 0;
+                flags.Z = (ushort)(registers.DE + registers.A) == 0;
+                flags.N = ((ushort)(registers.DE + registers.A) & 0b1000000000000000) != 0;
                 flags.H = (registers.DE & 0xF) > (0xF - (registers.A & 0xF));
                 flags.C = registers.DE > (0xFFFF - registers.A);
 
@@ -911,8 +915,8 @@ namespace CHIP9.NET
             //ADDX HL
             opcodes[0xA3] = (out ushort moveAmount) =>
             {
-                flags.Z = registers.HL + registers.A == 0;
-                flags.N = ((registers.HL + registers.A) & 0b1000000000000000) != 0;
+                flags.Z = (ushort)(registers.HL + registers.A) == 0;
+                flags.N = ((ushort)(registers.HL + registers.A) & 0b1000000000000000) != 0;
                 flags.H = (registers.HL & 0xF) > (0xF - (registers.A & 0xF));
                 flags.C = registers.HL > (0xFFFF - registers.A);
 
@@ -922,8 +926,8 @@ namespace CHIP9.NET
             //SUB B
             opcodes[0x84] = (out ushort moveAmount) =>
             {
-                flags.Z = registers.B - registers.A == 0;
-                flags.N = ((registers.B - registers.A) & 0b10000000) != 0;
+                flags.Z = (byte)(registers.B - registers.A) == 0;
+                flags.N = ((byte)(registers.B - registers.A) & 0b10000000) != 0;
                 flags.H = (registers.B & 0xF) < (registers.A & 0xF);
                 flags.C = registers.B < registers.A;
 
@@ -933,8 +937,8 @@ namespace CHIP9.NET
             //SUB C
             opcodes[0x94] = (out ushort moveAmount) =>
             {
-                flags.Z = registers.C - registers.A == 0;
-                flags.N = ((registers.C - registers.A) & 0b10000000) != 0;
+                flags.Z = (byte)(registers.C - registers.A) == 0;
+                flags.N = ((byte)(registers.C - registers.A) & 0b10000000) != 0;
                 flags.H = (registers.C & 0xF) < (registers.A & 0xF);
                 flags.C = registers.C < registers.A;
 
@@ -944,8 +948,8 @@ namespace CHIP9.NET
             //SUB D
             opcodes[0xA4] = (out ushort moveAmount) =>
             {
-                flags.Z = registers.D - registers.A == 0;
-                flags.N = ((registers.D - registers.A) & 0b10000000) != 0;
+                flags.Z = (byte)(registers.D - registers.A) == 0;
+                flags.N = ((byte)(registers.D - registers.A) & 0b10000000) != 0;
                 flags.H = (registers.D & 0xF) < (registers.A & 0xF);
                 flags.C = registers.D < registers.A;
 
@@ -955,8 +959,8 @@ namespace CHIP9.NET
             //SUB E
             opcodes[0xB4] = (out ushort moveAmount) =>
             {
-                flags.Z = registers.E - registers.A == 0;
-                flags.N = ((registers.E - registers.A) & 0b10000000) != 0;
+                flags.Z = (byte)(registers.E - registers.A) == 0;
+                flags.N = ((byte)(registers.E - registers.A) & 0b10000000) != 0;
                 flags.H = (registers.E & 0xF) < (registers.A & 0xF);
                 flags.C = registers.E < registers.A;
 
@@ -966,8 +970,8 @@ namespace CHIP9.NET
             //SUB H
             opcodes[0xC4] = (out ushort moveAmount) =>
             {
-                flags.Z = registers.H - registers.A == 0;
-                flags.N = ((registers.H - registers.A) & 0b10000000) != 0;
+                flags.Z = (byte)(registers.H - registers.A) == 0;
+                flags.N = ((byte)(registers.H - registers.A) & 0b10000000) != 0;
                 flags.H = (registers.H & 0xF) < (registers.A & 0xF);
                 flags.C = registers.H < registers.A;
 
@@ -977,8 +981,8 @@ namespace CHIP9.NET
             //SUB L
             opcodes[0xD4] = (out ushort moveAmount) =>
             {
-                flags.Z = registers.L - registers.A == 0;
-                flags.N = ((registers.L - registers.A) & 0b10000000) != 0;
+                flags.Z = (byte)(registers.L - registers.A) == 0;
+                flags.N = ((byte)(registers.L - registers.A) & 0b10000000) != 0;
                 flags.H = (registers.L & 0xF) < (registers.A & 0xF);
                 flags.C = registers.L < registers.A;
 
@@ -988,8 +992,8 @@ namespace CHIP9.NET
             //SUB (HL)
             opcodes[0xE4] = (out ushort moveAmount) =>
             {
-                flags.Z = memory[registers.HL] - registers.A == 0;
-                flags.N = ((memory[registers.HL] - registers.A) & 0b10000000) != 0;
+                flags.Z = (byte)(memory[registers.HL] - registers.A) == 0;
+                flags.N = ((byte)(memory[registers.HL] - registers.A) & 0b10000000) != 0;
                 flags.H = (memory[registers.HL] & 0xF) < (registers.A & 0xF);
                 flags.C = memory[registers.HL] < registers.A;
 
@@ -999,8 +1003,8 @@ namespace CHIP9.NET
             //SUB A
             opcodes[0xF4] = (out ushort moveAmount) =>
             {
-                flags.Z = registers.A - registers.A == 0;
-                flags.N = ((registers.A - registers.A) & 0b10000000) != 0;
+                flags.Z = (byte)(registers.A - registers.A) == 0;
+                flags.N = ((byte)(registers.A - registers.A) & 0b10000000) != 0;
                 flags.H = (registers.A & 0xF) < (registers.A & 0xF);
                 flags.C = registers.A < registers.A;
 
@@ -1012,8 +1016,8 @@ namespace CHIP9.NET
             {
                 byte xx = memory[registers.PC + 1];
 
-                flags.Z = registers.A - xx == 0;
-                flags.N = ((registers.A - xx) & 0b10000000) != 0;
+                flags.Z = (byte)(registers.A - xx) == 0;
+                flags.N = ((byte)(registers.A - xx) & 0b10000000) != 0;
                 flags.H = (registers.A & 0xF) < (xx & 0xF);
                 flags.C = registers.A < xx;
 
@@ -1023,8 +1027,8 @@ namespace CHIP9.NET
             //INC B
             opcodes[0x03] = (out ushort moveAmount) =>
             {
-                flags.Z = registers.B + 1 == 0;
-                flags.N = ((registers.B + 1) & 0b10000000) != 0;
+                flags.Z = (byte)(registers.B + 1) == 0;
+                flags.N = ((byte)(registers.B + 1) & 0b10000000) != 0;
                 flags.H = (registers.B & 0xF) > (0xF - (1 & 0xF));
                 flags.C = registers.B > (0xFF - 1);
 
@@ -1034,8 +1038,8 @@ namespace CHIP9.NET
             //INC C
             opcodes[0x13] = (out ushort moveAmount) =>
             {
-                flags.Z = registers.C + 1 == 0;
-                flags.N = ((registers.C + 1) & 0b10000000) != 0;
+                flags.Z = (byte)(registers.C + 1) == 0;
+                flags.N = ((byte)(registers.C + 1) & 0b10000000) != 0;
                 flags.H = (registers.C & 0xF) > (0xF - (1 & 0xF));
                 flags.C = registers.C > (0xFF - 1);
 
@@ -1045,8 +1049,8 @@ namespace CHIP9.NET
             //INC D
             opcodes[0x23] = (out ushort moveAmount) =>
             {
-                flags.Z = registers.D + 1 == 0;
-                flags.N = ((registers.D + 1) & 0b10000000) != 0;
+                flags.Z = (byte)(registers.D + 1) == 0;
+                flags.N = ((byte)(registers.D + 1) & 0b10000000) != 0;
                 flags.H = (registers.D & 0xF) > (0xF - (1 & 0xF));
                 flags.C = registers.D > (0xFF - 1);
 
@@ -1056,8 +1060,8 @@ namespace CHIP9.NET
             //INC E
             opcodes[0x33] = (out ushort moveAmount) =>
             {
-                flags.Z = registers.E + 1 == 0;
-                flags.N = ((registers.E + 1) & 0b10000000) != 0;
+                flags.Z = (byte)(registers.E + 1) == 0;
+                flags.N = ((byte)(registers.E + 1) & 0b10000000) != 0;
                 flags.H = (registers.E & 0xF) > (0xF - (1 & 0xF));
                 flags.C = registers.E > (0xFF - 1);
 
@@ -1067,8 +1071,8 @@ namespace CHIP9.NET
             //INC H
             opcodes[0x43] = (out ushort moveAmount) =>
             {
-                flags.Z = registers.H + 1 == 0;
-                flags.N = ((registers.H + 1) & 0b10000000) != 0;
+                flags.Z = (byte)(registers.H + 1) == 0;
+                flags.N = ((byte)(registers.H + 1) & 0b10000000) != 0;
                 flags.H = (registers.H & 0xF) > (0xF - (1 & 0xF));
                 flags.C = registers.H > (0xFF - 1);
 
@@ -1078,8 +1082,8 @@ namespace CHIP9.NET
             //INC L
             opcodes[0x53] = (out ushort moveAmount) =>
             {
-                flags.Z = registers.L + 1 == 0;
-                flags.N = ((registers.L + 1) & 0b10000000) != 0;
+                flags.Z = (byte)(registers.L + 1) == 0;
+                flags.N = ((byte)(registers.L + 1) & 0b10000000) != 0;
                 flags.H = (registers.L & 0xF) > (0xF - (1 & 0xF));
                 flags.C = registers.L > (0xFF - 1);
 
@@ -1089,8 +1093,8 @@ namespace CHIP9.NET
             //INC (HL)
             opcodes[0x63] = (out ushort moveAmount) =>
             {
-                flags.Z = memory[registers.HL] + 1 == 0;
-                flags.N = ((memory[registers.HL] + 1) & 0b10000000) != 0;
+                flags.Z = (byte)(memory[registers.HL] + 1) == 0;
+                flags.N = ((byte)(memory[registers.HL] + 1) & 0b10000000) != 0;
                 flags.H = (memory[registers.HL] & 0xF) > (0xF - (1 & 0xF));
                 flags.C = memory[registers.HL] > (0xFF - 1);
 
@@ -1100,8 +1104,8 @@ namespace CHIP9.NET
             //INC A
             opcodes[0x73] = (out ushort moveAmount) =>
             {
-                flags.Z = registers.A + 1 == 0;
-                flags.N = ((registers.A + 1) & 0b10000000) != 0;
+                flags.Z = (byte)(registers.A + 1) == 0;
+                flags.N = ((byte)(registers.A + 1) & 0b10000000) != 0;
                 flags.H = (registers.A & 0xF) > (0xF - (1 & 0xF));
                 flags.C = registers.A > (0xFF - 1);
 
@@ -1129,8 +1133,8 @@ namespace CHIP9.NET
             //DEC B
             opcodes[0x07] = (out ushort moveAmount) =>
             {
-                flags.Z = registers.B - 1 == 0;
-                flags.N = ((registers.B - 1) & 0b10000000) != 0;
+                flags.Z = (byte)(registers.B - 1) == 0;
+                flags.N = ((byte)(registers.B - 1) & 0b10000000) != 0;
                 flags.H = (registers.B & 0xF) < (1 & 0xF);
                 flags.C = registers.B < 1;
 
@@ -1140,8 +1144,8 @@ namespace CHIP9.NET
             //DEC C
             opcodes[0x17] = (out ushort moveAmount) =>
             {
-                flags.Z = registers.C - 1 == 0;
-                flags.N = ((registers.C - 1) & 0b10000000) != 0;
+                flags.Z = (byte)(registers.C - 1) == 0;
+                flags.N = ((byte)(registers.C - 1) & 0b10000000) != 0;
                 flags.H = (registers.C & 0xF) < (1 & 0xF);
                 flags.C = registers.C < 1;
 
@@ -1151,8 +1155,8 @@ namespace CHIP9.NET
             //DEC D
             opcodes[0x27] = (out ushort moveAmount) =>
             {
-                flags.Z = registers.D - 1 == 0;
-                flags.N = ((registers.D - 1) & 0b10000000) != 0;
+                flags.Z = (byte)(registers.D - 1) == 0;
+                flags.N = ((byte)(registers.D - 1) & 0b10000000) != 0;
                 flags.H = (registers.D & 0xF) < (1 & 0xF);
                 flags.C = registers.D < 1;
 
@@ -1162,8 +1166,8 @@ namespace CHIP9.NET
             //DEC E
             opcodes[0x37] = (out ushort moveAmount) =>
             {
-                flags.Z = registers.E - 1 == 0;
-                flags.N = ((registers.E - 1) & 0b10000000) != 0;
+                flags.Z = (byte)(registers.E - 1) == 0;
+                flags.N = ((byte)(registers.E - 1) & 0b10000000) != 0;
                 flags.H = (registers.E & 0xF) < (1 & 0xF);
                 flags.C = registers.E < 1;
 
@@ -1173,8 +1177,8 @@ namespace CHIP9.NET
             //DEC H
             opcodes[0x47] = (out ushort moveAmount) =>
             {
-                flags.Z = registers.H - 1 == 0;
-                flags.N = ((registers.H - 1) & 0b10000000) != 0;
+                flags.Z = (byte)(registers.H - 1) == 0;
+                flags.N = ((byte)(registers.H - 1) & 0b10000000) != 0;
                 flags.H = (registers.H & 0xF) < (1 & 0xF);
                 flags.C = registers.H < 1;
 
@@ -1184,8 +1188,8 @@ namespace CHIP9.NET
             //DEC L
             opcodes[0x57] = (out ushort moveAmount) =>
             {
-                flags.Z = registers.L - 1 == 0;
-                flags.N = ((registers.L - 1) & 0b10000000) != 0;
+                flags.Z = (byte)(registers.L - 1) == 0;
+                flags.N = ((byte)(registers.L - 1) & 0b10000000) != 0;
                 flags.H = (registers.L & 0xF) < (1 & 0xF);
                 flags.C = registers.L < 1;
 
@@ -1195,8 +1199,8 @@ namespace CHIP9.NET
             //DEC (HL)
             opcodes[0x67] = (out ushort moveAmount) =>
             {
-                flags.Z = memory[registers.HL] - 1 == 0;
-                flags.N = ((memory[registers.HL] - 1) & 0b10000000) != 0;
+                flags.Z = (byte)(memory[registers.HL] - 1) == 0;
+                flags.N = ((byte)(memory[registers.HL] - 1) & 0b10000000) != 0;
                 flags.H = (memory[registers.HL] & 0xF) < (1 & 0xF);
                 flags.C = memory[registers.HL] < 1;
 
@@ -1206,8 +1210,8 @@ namespace CHIP9.NET
             //DEC A
             opcodes[0x77] = (out ushort moveAmount) =>
             {
-                flags.Z = registers.A - 1 == 0;
-                flags.N = ((registers.A - 1) & 0b10000000) != 0;
+                flags.Z = (byte)(registers.A - 1) == 0;
+                flags.N = ((byte)(registers.A - 1) & 0b10000000) != 0;
                 flags.H = (registers.A & 0xF) < (1 & 0xF);
                 flags.C = registers.A < 1;
 
@@ -1703,6 +1707,7 @@ namespace CHIP9.NET
             //CLRSCR
             opcodes[0xF0] = (out ushort moveAmount) =>
             {
+                Thread.Sleep(100);
                 Array.Clear(screen_buffer, 0, screen_buffer.Length);
                 moveAmount = 1;
             };
@@ -1712,13 +1717,266 @@ namespace CHIP9.NET
                 byte line = registers.A;
                 sbyte x = (sbyte)registers.C;
                 sbyte y = (sbyte)registers.B;
-                for (byte i = 7; i >= 0; i--)
+                for (int i = 7; i >= 0; i--)
                 {
                     byte lx = (byte)(7 - i);
                     if (x + lx < 0 || x + lx > 127) continue;
-                    bool state = (line & (1 << i)) >> i == 1 ? true : false;
+                    bool state = (line & (1 << i)) >> i == 1;
                     screen_buffer[x + lx, y] = state;
                 }
+                moveAmount = 1;
+            };
+            //JMP xxyy
+            opcodes[0x0F] = (out ushort moveAmount) =>
+            {
+                ushort val = 0;
+                val |= memory[registers.PC + 1];
+                val |= (ushort)(memory[registers.PC + 2] << 8);
+                registers.PC = val;
+                moveAmount = 0;
+            };
+            //JMPZ xxyy
+            opcodes[0x1F] = (out ushort moveAmount) =>
+            {
+                if (flags.Z)
+                {
+                    ushort val = 0;
+                    val |= memory[registers.PC + 1];
+                    val |= (ushort)(memory[registers.PC + 2] << 8);
+                    registers.PC = val;
+                    moveAmount = 0;
+                }
+                else
+                {
+                    moveAmount = 3;
+                }
+            };
+            //JMPNZ xxyy
+            opcodes[0x2F] = (out ushort moveAmount) =>
+            {
+                if (!flags.Z)
+                {
+                    ushort val = 0;
+                    val |= memory[registers.PC + 1];
+                    val |= (ushort)(memory[registers.PC + 2] << 8);
+                    registers.PC = val;
+                    moveAmount = 0;
+                }
+                else
+                {
+                    moveAmount = 3;
+                }
+            };
+            //JMPN xxyy
+            opcodes[0x3F] = (out ushort moveAmount) =>
+            {
+                if (flags.N)
+                {
+                    ushort val = 0;
+                    val |= memory[registers.PC + 1];
+                    val |= (ushort)(memory[registers.PC + 2] << 8);
+                    registers.PC = val;
+                    moveAmount = 0;
+                }
+                else
+                {
+                    moveAmount = 3;
+                }
+            };
+            //JMPNN xxyy
+            opcodes[0x4F] = (out ushort moveAmount) =>
+            {
+                if (!flags.N)
+                {
+                    ushort val = 0;
+                    val |= memory[registers.PC + 1];
+                    val |= (ushort)(memory[registers.PC + 2] << 8);
+                    registers.PC = val;
+                    moveAmount = 0;
+                }
+                else
+                {
+                    moveAmount = 3;
+                }
+            };
+            //JMPH xxyy
+            opcodes[0x5F] = (out ushort moveAmount) =>
+            {
+                if (flags.H)
+                {
+                    ushort val = 0;
+                    val |= memory[registers.PC + 1];
+                    val |= (ushort)(memory[registers.PC + 2] << 8);
+                    registers.PC = val;
+                    moveAmount = 0;
+                }
+                else
+                {
+                    moveAmount = 3;
+                }
+            };
+            //JMPNH xxyy
+            opcodes[0x6F] = (out ushort moveAmount) =>
+            {
+                if (!flags.H)
+                {
+                    ushort val = 0;
+                    val |= memory[registers.PC + 1];
+                    val |= (ushort)(memory[registers.PC + 2] << 8);
+                    registers.PC = val;
+                    moveAmount = 0;
+                }
+                else
+                {
+                    moveAmount = 3;
+                }
+            };
+            //JMPC xxyy
+            opcodes[0x7F] = (out ushort moveAmount) =>
+            {
+                if (flags.C)
+                {
+                    ushort val = 0;
+                    val |= memory[registers.PC + 1];
+                    val |= (ushort)(memory[registers.PC + 2] << 8);
+                    registers.PC = val;
+                    moveAmount = 0;
+                }
+                else
+                {
+                    moveAmount = 3;
+                }
+            };
+            //JMPNC xxyy
+            opcodes[0x8F] = (out ushort moveAmount) =>
+            {
+                if (!flags.C)
+                {
+                    ushort val = 0;
+                    val |= memory[registers.PC + 1];
+                    val |= (ushort)(memory[registers.PC + 2] << 8);
+                    registers.PC = val;
+                    moveAmount = 0;
+                }
+                else
+                {
+                    moveAmount = 3;
+                }
+            };
+            //JMP xx
+            opcodes[0x9F] = (out ushort moveAmount) =>
+            {
+                sbyte xx = (sbyte)memory[registers.PC + 1];
+                registers.PC = (ushort)(registers.PC + xx);
+                moveAmount = 2;
+            };
+            //JMPZ xx
+            opcodes[0xAF] = (out ushort moveAmount) =>
+            {
+                if (flags.Z)
+                {
+                    sbyte xx = (sbyte)memory[registers.PC + 1];
+                    registers.PC = (ushort)(registers.PC + xx);
+                }
+                moveAmount = 2;
+            };
+            //JMPNZ xx
+            opcodes[0xBF] = (out ushort moveAmount) =>
+            {
+                if (!flags.Z)
+                {
+                    sbyte xx = (sbyte)memory[registers.PC + 1];
+                    registers.PC = (ushort)(registers.PC + xx);
+                }
+                moveAmount = 2;
+            };
+            //JMPN xx
+            opcodes[0xCF] = (out ushort moveAmount) =>
+            {
+                if (flags.N)
+                {
+                    sbyte xx = (sbyte)memory[registers.PC + 1];
+                    registers.PC = (ushort)(registers.PC + xx);
+                }
+                moveAmount = 2;
+            };
+            //JMPNN xx
+            opcodes[0xDF] = (out ushort moveAmount) =>
+            {
+                if (!flags.N)
+                {
+                    sbyte xx = (sbyte)memory[registers.PC + 1];
+                    registers.PC = (ushort)(registers.PC + xx);
+                }
+                moveAmount = 2;
+            };
+            //JMPH xx
+            opcodes[0xEF] = (out ushort moveAmount) =>
+            {
+                if (flags.H)
+                {
+                    sbyte xx = (sbyte)memory[registers.PC + 1];
+                    registers.PC = (ushort)(registers.PC + xx);
+                }
+                moveAmount = 2;
+            };
+            //JMPNH xx
+            opcodes[0xFF] = (out ushort moveAmount) =>
+            {
+                if (!flags.H)
+                {
+                    sbyte xx = (sbyte)memory[registers.PC + 1];
+                    registers.PC = (ushort)(registers.PC + xx);
+                }
+                moveAmount = 2;
+            };
+            //JMPC xx
+            opcodes[0xEE] = (out ushort moveAmount) =>
+            {
+                if (flags.C)
+                {
+                    sbyte xx = (sbyte)memory[registers.PC + 1];
+                    registers.PC = (ushort)(registers.PC + xx);
+                }
+                moveAmount = 2;
+            };
+            //JMPNC xx
+            opcodes[0xFE] = (out ushort moveAmount) =>
+            {
+                if (!flags.C)
+                {
+                    sbyte xx = (sbyte)memory[registers.PC + 1];
+                    registers.PC = (ushort)(registers.PC + xx);
+                }
+                moveAmount = 2;
+            };
+            //CALL xxyy
+            opcodes[0x1E] = (out ushort moveAmount) =>
+            {
+                ushort newPC = (ushort)(registers.PC + 3);
+                memory[registers.SP + 1] = (byte)((newPC & 0xFF00) >> 8);
+                memory[registers.SP] = (byte)(newPC & 0xFF);
+                registers.SP -= 2;
+
+                ushort val = 0;
+                val |= memory[registers.PC + 1];
+                val |= (ushort)(memory[registers.PC + 2] << 8);
+                registers.PC = val;
+                moveAmount = 0;
+            };
+            //RET
+            opcodes[0x0E] = (out ushort moveAmount) =>
+            {
+                registers.SP += 2;
+                ushort val = 0;
+                val |= (ushort)(memory[registers.SP + 1] << 8);
+                val |= memory[registers.SP];
+                registers.PC = val;
+                moveAmount = 0;
+            };
+            //NOP
+            opcodes[0x00] = (out ushort moveAmount) =>
+            {
                 moveAmount = 1;
             };
         }
